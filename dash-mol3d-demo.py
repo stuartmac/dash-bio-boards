@@ -1,9 +1,11 @@
 from dash import Dash, html, dash_table, Input, Output, callback
 import dash_bio as dashbio
 from dash_bio.utils import PdbParser, create_mol3d_style
+import dash_bootstrap_components as dbc
 import pandas as pd
 
-app = Dash(__name__)
+# Initialize the Dash app with Bootstrap support
+app = Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
 
 parser = PdbParser('https://git.io/4K8X.pdb')
 
@@ -16,23 +18,45 @@ df = pd.DataFrame(data["atoms"])
 df = df.drop_duplicates(subset=['residue_name'])
 df['positions'] = df['positions'].apply(lambda x: ', '.join(map(str, x)))
 
-app.layout = html.Div(
+# Enhanced layout with Bootstrap
+app.layout = dbc.Container(
     [
-        dash_table.DataTable(
-            id="zooming-specific-residue-table",
-            columns=[{"name": i, "id": i} for i in df.columns],
-            data=df.to_dict("records"),
-            row_selectable="single",
-            page_size=10,
-        ),
-        dashbio.Molecule3dViewer(
-            id="zooming-specific-molecule3d-zoomto",
-            modelData=data,
-            styles=styles
-        ),
-    ]
+        dbc.Row(dbc.Col(html.H1("Protein Structure Viewer"))),  # Header
+        dbc.Row(
+            [
+                dbc.Col(
+                    dash_table.DataTable(
+                        id="zooming-specific-residue-table",
+                        columns=[{"name": i, "id": i} for i in df.columns],
+                        data=df.to_dict("records"),
+                        row_selectable="single",
+                        page_size=10,
+                        style_table={
+                            'overflowX': 'scroll',
+                        },
+                        style_cell={
+                            'textAlign': 'left',
+                            'font_family': 'Arial',
+                            'font_size': '16px'
+                        },
+                    ),
+                    width={"size": 6, "offset": 0}
+                ),
+                dbc.Col(
+                    dashbio.Molecule3dViewer(
+                        id="zooming-specific-molecule3d-zoomto",
+                        modelData=data,
+                        styles=styles,
+                        width="600px",
+                        height="600px"
+                    ),
+                    width={"size": 6, "offset": 0}
+                ),
+            ]
+        )
+    ],
+    fluid=True
 )
-
 
 @callback(
     Output("zooming-specific-molecule3d-zoomto", "zoomTo"),
