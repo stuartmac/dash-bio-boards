@@ -5,7 +5,10 @@ import dash_bootstrap_components as dbc
 import pandas as pd
 
 # Initialize the Dash app with Bootstrap support
-app = Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
+app = Dash(__name__,
+           external_stylesheets=[dbc.themes.BOOTSTRAP],
+           external_scripts=['/static/js/mol3d-responsive.js']
+           )
 
 parser = PdbParser('https://git.io/4K8X.pdb')
 
@@ -49,18 +52,19 @@ app.layout = dbc.Container(
                             id="zooming-specific-molecule3d-zoomto",
                             modelData=data,
                             styles=styles,
-                            width="580px",  # Adjusted width
-                            height="580px"  # Adjusted height
+                            style={"width": "100%", "height": "100%"}  # Responsive
                         ),
                         style={
                             'border': '2px solid #ccc',
                             'borderRadius': '8px',
                             'padding': '10px',
-                            'width': '600px',  # Width of the box
-                            'height': '600px',  # Height of the box
+                            'width': '100%',  # Responsive
+                            'height': '600px',
+                            'boxSizing': 'border-box'
                         }
                     ),
-                    width={"size": 6, "offset": 0}
+                    width={"size": 12, "offset": 0, "order": "last"},  # Bootstrap responsive setting
+                    md={"size": 6, "offset": 0, "order": "first"}  # Bootstrap responsive setting for medium screens
                 ),
             ]
         )
