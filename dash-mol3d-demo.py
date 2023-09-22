@@ -43,12 +43,22 @@ app.layout = dbc.Container(
                     width={"size": 6, "offset": 0}
                 ),
                 dbc.Col(
-                    dashbio.Molecule3dViewer(
-                        id="zooming-specific-molecule3d-zoomto",
-                        modelData=data,
-                        styles=styles,
-                        width="600px",
-                        height="600px"
+                    # Add a box around Molecule3dViewer
+                    html.Div(
+                        dashbio.Molecule3dViewer(
+                            id="zooming-specific-molecule3d-zoomto",
+                            modelData=data,
+                            styles=styles,
+                            width="580px",  # Adjusted width
+                            height="580px"  # Adjusted height
+                        ),
+                        style={
+                            'border': '2px solid #ccc',
+                            'borderRadius': '8px',
+                            'padding': '10px',
+                            'width': '600px',  # Width of the box
+                            'height': '600px',  # Height of the box
+                        }
                     ),
                     width={"size": 6, "offset": 0}
                 ),
