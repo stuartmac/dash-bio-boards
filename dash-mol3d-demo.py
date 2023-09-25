@@ -14,7 +14,8 @@ parser = PdbParser('https://git.io/4K8X.pdb')
 
 data = parser.mol3d_data()
 styles = create_mol3d_style(
-    data['atoms'], visualization_type='cartoon', color_element='residue'
+    data['atoms'], visualization_type='cartoon', color_element='chain',
+    color_scheme={'A': '#facd60', 'P': '#fb7756', 'T': '#fb7756'}
 )
 
 df = pd.DataFrame(data["atoms"])
