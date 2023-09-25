@@ -23,9 +23,30 @@ df = df.drop_duplicates(subset=['residue_name'])
 df['positions'] = df['positions'].apply(lambda x: ', '.join(map(str, x)))
 
 # Enhanced layout with Bootstrap
+navbar = dbc.NavbarSimple(
+    children=[
+        dbc.NavItem(dbc.NavLink("Link 1", href="#")),
+        dbc.DropdownMenu(
+            nav=True,
+            in_navbar=True,
+            label="Menu",
+            children=[
+                dbc.DropdownMenuItem("Entry 1"),
+                dbc.DropdownMenuItem("Entry 2"),
+                dbc.DropdownMenuItem(divider=True),
+                dbc.DropdownMenuItem("Entry 3"),
+            ],
+        ),
+    ],
+    brand="Protein Structure Viewer",
+    brand_href="#",
+    color="primary",
+    dark=True,
+)
+
 app.layout = dbc.Container(
     [
-        dbc.Row(dbc.Col(html.H1("Protein Structure Viewer"))),  # Header
+        dbc.Row(dbc.Col(navbar)),  # NavBar
         dbc.Row(
             [
                 dbc.Col(
