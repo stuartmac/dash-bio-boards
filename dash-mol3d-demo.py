@@ -19,29 +19,30 @@ styles = create_mol3d_style(
 )
 
 df = pd.DataFrame(data["atoms"])
-df = df.drop_duplicates(subset=['residue_name'])
 df['positions'] = df['positions'].apply(lambda x: ', '.join(map(str, x)))
 
 # Enhanced layout with Bootstrap
-navbar = dbc.NavbarSimple(
-    children=[
-        dbc.NavItem(dbc.NavLink("Link 1", href="#")),
-        dbc.DropdownMenu(
-            nav=True,
-            in_navbar=True,
-            label="Menu",
-            children=[
-                dbc.DropdownMenuItem("Entry 1"),
-                dbc.DropdownMenuItem("Entry 2"),
-                dbc.DropdownMenuItem(divider=True),
-                dbc.DropdownMenuItem("Entry 3"),
-            ],
-        ),
-    ],
-    brand="Protein Structure Viewer",
-    brand_href="#",
+navbar = dbc.Navbar(
+    dbc.Container(
+        [
+            dbc.NavbarBrand("Protein Structure Viewer", href="#"),
+            dbc.NavbarToggler(id="navbar-toggler"),
+            dbc.Collapse(
+                dbc.Nav(
+                    [
+                        dbc.NavItem(dbc.NavLink("Home", href="#", id="home-link")),
+                        dbc.NavItem(dbc.NavLink("Results", href="#", id="results-link")),
+                    ],
+                    className="navbar-nav",
+                ),
+                id="navbar-collapse",
+                navbar=True,
+            ),
+        ]
+    ),
     color="primary",
     dark=True,
+    className="navbar-expand-lg",
 )
 
 app.layout = dbc.Container(
