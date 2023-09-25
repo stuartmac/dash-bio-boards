@@ -28,49 +28,59 @@ app.layout = dbc.Container(
         dbc.Row(
             [
                 dbc.Col(
-                    dash_table.DataTable(
-                        id="zooming-specific-residue-table",
-                        columns=[{"name": i, "id": i} for i in df.columns],
-                        data=df.to_dict("records"),
-                        row_selectable="single",
-                        page_size=10,
-                        style_table={
-                            'overflowX': 'scroll',
-                        },
-                        style_cell={
-                            'textAlign': 'left',
-                            'font_family': 'Arial',
-                            'font_size': '16px'
-                        },
-                    ),
+                    [
+                        html.H3("Residue Information"),
+                        dash_table.DataTable(
+                            id="zooming-specific-residue-table",
+                            columns=[{"name": i, "id": i} for i in df.columns],
+                            data=df.to_dict("records"),
+                            row_selectable="single",
+                            page_size=10,
+                            style_table={
+                                'overflowX': 'scroll',
+                            },
+                            style_cell={
+                                'textAlign': 'left',
+                                'font_family': 'Arial',
+                                'font_size': '16px'
+                            },
+                        ),
+                    ],
                     width={"size": 6, "offset": 0}
                 ),
                 dbc.Col(
-                    # Add a box around Molecule3dViewer
-                    html.Div(
-                        dashbio.Molecule3dViewer(
-                            id="zooming-specific-molecule3d-zoomto",
-                            modelData=data,
-                            styles=styles,
-                            style={"width": "100%", "height": "100%"}  # Responsive
+                    [
+                        html.H3("3D Protein Structure"),
+                        # Add a box around Molecule3dViewer
+                        html.Div(
+                            dashbio.Molecule3dViewer(
+                                id="zooming-specific-molecule3d-zoomto",
+                                modelData=data,
+                                styles=styles,
+                                # Responsive
+                                style={"width": "100%", "height": "100%"}
+                            ),
+                            style={
+                                'border': '2px solid #ccc',
+                                'borderRadius': '8px',
+                                'padding': '10px',
+                                'width': '100%',  # Responsive
+                                'height': '600px',
+                                'boxSizing': 'border-box'
+                            }
                         ),
-                        style={
-                            'border': '2px solid #ccc',
-                            'borderRadius': '8px',
-                            'padding': '10px',
-                            'width': '100%',  # Responsive
-                            'height': '600px',
-                            'boxSizing': 'border-box'
-                        }
-                    ),
-                    width={"size": 12, "offset": 0, "order": "last"},  # Bootstrap responsive setting
-                    md={"size": 6, "offset": 0, "order": "first"}  # Bootstrap responsive setting for medium screens
+                    ],
+                    # Bootstrap responsive setting
+                    width={"size": 12, "offset": 0, "order": "last"},
+                    # Bootstrap responsive setting for medium screens
+                    md={"size": 6, "offset": 0, "order": "first"}
                 ),
             ]
         )
     ],
     fluid=True
 )
+
 
 @callback(
     Output("zooming-specific-molecule3d-zoomto", "zoomTo"),
@@ -80,7 +90,8 @@ app.layout = dbc.Container(
 )
 def residue(selected_row):
     row = df.iloc[selected_row]
-    row['positions'] = row['positions'].apply(lambda x: [float(x) for x in x.split(',')])
+    row['positions'] = row['positions'].apply(
+        lambda x: [float(x) for x in x.split(',')])
     return [
         {
             "sel": {"chain": row["chain"], "resi": row["residue_index"]},
@@ -98,6 +109,7 @@ def residue(selected_row):
             }
         ],
     ]
+
 
 if __name__ == "__main__":
     app.run(debug=True)
