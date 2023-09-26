@@ -10,16 +10,19 @@ app = Dash(__name__,
            external_scripts=['/static/js/mol3d-responsive.js']
            )
 
-parser = PdbParser('https://git.io/4K8X.pdb')
+# Parse PDB from local file or URL
+parser = PdbParser('data/pdb3tx7.ent')
 
 data = parser.mol3d_data()
 styles = create_mol3d_style(
     data['atoms'], visualization_type='cartoon', color_element='chain',
-    color_scheme={'A': '#facd60', 'P': '#fb7756', 'T': '#fb7756'}
+    color_scheme={'A': '#facd60', 'P': '#fb7756'}
 )
 
 df = pd.DataFrame(data["atoms"])
 df['positions'] = df['positions'].apply(lambda x: ', '.join(map(str, x)))
+df = df[df['name'] == 'CA']
+df = df[['chain', 'residue_name', 'residue_index', 'positions']]
 
 # Enhanced layout with Bootstrap
 navbar = dbc.Navbar(
