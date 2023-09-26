@@ -71,8 +71,10 @@ app.layout = dbc.Container(
                                         'font_size': '16px'
                                     },
                                 ),
+                                className="data-table-card-body"
                             ),
-                        ]
+                        ],
+                        className="data-table-card"
                     ),
                     width={"size": 6, "offset": 0}
                 ),
@@ -93,9 +95,11 @@ app.layout = dbc.Container(
                                     'padding': '10px',
                                     'width': '100%',  # Responsive
                                     'height': '600px',
-                                }
+                                },
+                                className="mol3d-card-body"
                             ),
-                        ]
+                        ],
+                        className="mol3d-card"
                     ),
                     # Bootstrap responsive setting
                     width={"size": 12, "offset": 0, "order": "last"},
