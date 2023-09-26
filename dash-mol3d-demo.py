@@ -13,16 +13,25 @@ app = Dash(__name__,
 # Parse PDB from local file or URL
 parser = PdbParser('data/pdb3tx7.ent')
 
+# Create styles for Molecule3dViewer
 data = parser.mol3d_data()
 styles = create_mol3d_style(
     data['atoms'], visualization_type='cartoon', color_element='chain',
     color_scheme={'A': '#facd60', 'P': '#fb7756'}
 )
 
+# Create a DataFrame with residue information
 df = pd.DataFrame(data["atoms"])
 df['positions'] = df['positions'].apply(lambda x: ', '.join(map(str, x)))
 df = df[df['name'] == 'CA']
 df = df[['chain', 'residue_name', 'residue_index', 'positions']]
+
+# Load variant table from HDF5 file
+variants = pd.read_hdf('data/PF00104.29-swiss-varalign-tables.h5', key='variants')
+variants_columns = [('Alignment', 'Column'), ('Allele_INFO', 'AC'), ('Allele_INFO', 'AF_POPMAX')]
+variants = variants[variants_columns]
+# Flatten multi-level columns
+variants.columns = ['_'.join(col).strip() for col in variants.columns.values]
 
 # Enhanced layout with Bootstrap
 navbar = dbc.Navbar(
@@ -110,7 +119,36 @@ app.layout = dbc.Container(
                     md={"size": 6, "offset": 0, "order": "first"}
                 ),
             ]
-        )
+        ),
+        dbc.Row(
+            dbc.Col(
+                dbc.Card(
+                    [
+                        dbc.CardHeader("Variants"),
+                        dbc.CardBody(
+                            dash_table.DataTable(
+                                id="zooming-specific-variants-table",
+                                columns=[{"name": i, "id": i}
+                                         for i in variants.columns],
+                                data=variants.to_dict("records"),
+                                page_size=10,
+                                style_table={
+                                    'overflowX': 'scroll',
+                                },
+                                style_cell={
+                                    'textAlign': 'left',
+                                    'font_family': 'Arial',
+                                    'font_size': '16px'
+                                },
+                            ),
+                            className="variants-table-card-body"
+                        ),
+                    ],
+                    className="variants-table-card"
+                ),
+                width={"size": 12, "offset": 0}
+            )
+        ),
     ],
     fluid=True
 )
