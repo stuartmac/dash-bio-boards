@@ -68,8 +68,8 @@ def read_alignment_data(fasta_path):
 
 def load_all_data(pfam_id):
     pdb_path = f'data/{pfam_id}/pdb_file.ent'
-    varalign_h5_path = f'data/{pfam_id}/variants.h5'
-    fasta_path = f'data/{pfam_id}/sequences.fa'
+    varalign_h5_path = f'data/{pfam_id}/{pfam_id}-swiss-varalign-tables.h5'
+    fasta_path = f'data/{pfam_id}/{pfam_id}-sequences.fa'
 
     data, styles = ready_mol3d_data(pdb_path)
     df = ready_residue_info(data)
