@@ -122,15 +122,29 @@ navbar = dbc.Navbar(
     className="navbar-expand-lg",
 )
 
-pfam_selector = dcc.Dropdown(
-    id='pfam-selector',
-    options=[
-        {'label': 'PF00104', 'value': 'PF00104'},
-        {'label': 'PF00001', 'value': 'PF00001'},
-        # Add other Pfams here
+pfam_selector = html.Div([
+    dcc.Input(style={"display": "none"}, type="text"),  # Dummy input
+    dcc.Dropdown(
+        id='pfam-selector',
+        options=[
+            {'label': 'PF00001', 'value': 'PF00001'},
+            {'label': 'PF00104', 'value': 'PF00104'},
+            # Add other Pfams here
+        ],
+        value=default_pfam  # default value
+    ),
+])
+
+pfam_selector_card = dbc.Card(
+    [
+        dbc.CardHeader("Select Pfam Family", style={"backgroundColor": "#f5a623", "color": "white"}),  # You can change the color
+        dbc.CardBody(
+            pfam_selector
+        ),
     ],
-    value=default_pfam  # default value
+    className="mb-4",  # Adds a bottom margin to separate it from the next row
 )
+
 
 residue_info_card = dbc.Card(
     [
@@ -259,7 +273,7 @@ variant_table_card = dbc.Card(
 app.layout = dbc.Container(
     [
         dbc.Row(dbc.Col(navbar)),  # NavBar
-        dbc.Row(dbc.Col(pfam_selector)),  # Pfam Selector
+        dbc.Row(dbc.Col(pfam_selector_card)),  # Pfam Selector
         # Mol3dViewer and residue table
         dbc.Row(
             [
