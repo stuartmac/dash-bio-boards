@@ -22,8 +22,6 @@ def ready_mol3d_data(pdb_path):
     )
     return data, styles
 
-data, styles = ready_mol3d_data('data/pdb3tx7.ent')
-
 def ready_residue_info(data):
     # Create a DataFrame with residue information
     df = pd.DataFrame(data["atoms"])
@@ -31,8 +29,6 @@ def ready_residue_info(data):
     df = df[df['name'] == 'CA']
     df = df[['chain', 'residue_name', 'residue_index', 'positions']]
     return df
-
-df = ready_residue_info(data)
 
 def ready_variant_table(varalign_h5_path):
     # Load variant table from HDF5 file
@@ -42,6 +38,8 @@ def ready_variant_table(varalign_h5_path):
     variants_columns.pop(97)  # ('Row', 'FILTER')
     variants_columns.pop(95)  # ('Row', 'ALT')
     variants = variants[variants_columns]
+    # Sample 1000 variants for demo purposes
+    variants = variants.sample(1000)
 
     # Flatten multi-level columns
     variants.columns = ['_'.join(col).strip() for col in variants.columns.values]
@@ -58,17 +56,32 @@ def ready_variant_table(varalign_h5_path):
 
     return variants, column_options, default_columns
 
-variants, column_options, default_columns = ready_variant_table('data/PF00104.29-swiss-varalign-tables.h5')
-
-
 def read_alignment_data(fasta_path):
     # Load the alignment data
     fasta = open(fasta_path).read()
     # Filter human sequences
-    fasta = '>' + '>'.join([seq for seq in fasta.split('>') if 'HUMAN' in seq])
+    human_sequences = [seq for seq in fasta.split('>') if 'HUMAN' in seq]
+    # Truncate alignment for demo purposes
+    human_sequences = human_sequences[:50]
+    fasta = '>' + '>'.join(human_sequences)
     return fasta
 
-fasta = read_alignment_data('data/PF00104.29_swissprot.fa')
+def load_all_data(pfam_id):
+    pdb_path = f'data/{pfam_id}/pdb_file.ent'
+    varalign_h5_path = f'data/{pfam_id}/variants.h5'
+    fasta_path = f'data/{pfam_id}/sequences.fa'
+
+    data, styles = ready_mol3d_data(pdb_path)
+    df = ready_residue_info(data)
+    variants, column_options, default_columns = ready_variant_table(varalign_h5_path)
+    fasta = read_alignment_data(fasta_path)
+
+    return data, styles, df, variants, column_options, default_columns, fasta
+
+# Load initial data for default Pfam
+default_pfam = 'PF00001'
+data, styles, df, variants, column_options, default_columns, fasta = load_all_data(default_pfam)
+
 
 alignment_chart = dashbio.AlignmentChart(
     id='alignment-viewer-eventDatum-usage',
@@ -79,9 +92,9 @@ alignment_chart = dashbio.AlignmentChart(
     showgap=False,
 )
 
-# Write the filtered alignment data to a file for download
-with open('data/PF00104.29-swiss-human.fa', 'w') as file:
-    file.write(fasta)
+# # Write the filtered alignment data to a file for download
+# with open('data/PF00104.29-swiss-human.fa', 'w') as file:
+#     file.write(fasta)
 
 # Enhanced layout with Bootstrap
 navbar = dbc.Navbar(
@@ -107,6 +120,16 @@ navbar = dbc.Navbar(
     color="primary",
     dark=True,
     className="navbar-expand-lg",
+)
+
+pfam_selector = dcc.Dropdown(
+    id='pfam-selector',
+    options=[
+        {'label': 'PF00104', 'value': 'PF00104'},
+        {'label': 'PF00001', 'value': 'PF00001'},
+        # Add other Pfams here
+    ],
+    value=default_pfam  # default value
 )
 
 residue_info_card = dbc.Card(
@@ -236,6 +259,7 @@ variant_table_card = dbc.Card(
 app.layout = dbc.Container(
     [
         dbc.Row(dbc.Col(navbar)),  # NavBar
+        dbc.Row(dbc.Col(pfam_selector)),  # Pfam Selector
         # Mol3dViewer and residue table
         dbc.Row(
             [
@@ -272,6 +296,25 @@ app.layout = dbc.Container(
     fluid=True
 )
 
+# Callback to update all the components when a Pfam is selected
+@app.callback(
+    [
+        Output('zooming-specific-molecule3d-zoomto', 'modelData'),
+        Output('zooming-specific-molecule3d-zoomto', 'styles'),
+        Output('zooming-specific-residue-table', 'data'),
+        Output('zooming-specific-variants-table', 'data'),
+        Output('zooming-specific-variants-table', 'columns'),
+        Output('column-dropdown', 'options'),
+        Output('column-dropdown', 'value'),
+        Output('alignment-viewer-eventDatum-usage', 'data')
+    ],
+    [Input('pfam-selector', 'value')]
+)
+def update_all_data(selected_pfam):
+    data, styles, df, variants, column_options, default_columns, fasta = load_all_data(selected_pfam)
+    variant_columns = [{'name': i, 'id': i} for i in default_columns]
+    return data, styles, df.to_dict('records'), variants.to_dict('records'), variant_columns, column_options, default_columns, fasta
+
 
 @callback(
     Output("zooming-specific-molecule3d-zoomto", "zoomTo"),
@@ -303,7 +346,7 @@ def residue(selected_row):
 
 
 @callback(
-    Output('zooming-specific-variants-table', 'columns'),
+    Output('zooming-specific-variants-table', 'columns', allow_duplicate=True),
     Input('column-dropdown', 'value'),
     prevent_initial_call=True
 )
