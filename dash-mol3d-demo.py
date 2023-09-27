@@ -61,6 +61,9 @@ alignment_chart = dashbio.AlignmentChart(
     showconservation=False,
     showgap=False,
 )
+# Write the filtered alignment data to a file for download
+with open('data/PF00104.29-swiss-human.fa', 'w') as file:
+    file.write(fasta)
 
 # Enhanced layout with Bootstrap
 navbar = dbc.Navbar(
