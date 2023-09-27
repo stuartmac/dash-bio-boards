@@ -1,4 +1,4 @@
-from dash import Dash, html, dash_table, Input, Output, callback, dcc
+from dash import Dash, html, dash_table, Input, Output, State, callback, dcc
 import dash_bio as dashbio
 from dash_bio.utils import PdbParser, create_mol3d_style
 import dash_bootstrap_components as dbc
@@ -6,7 +6,7 @@ import pandas as pd
 
 # Initialize the Dash app with Bootstrap support
 app = Dash(__name__,
-           external_stylesheets=[dbc.themes.BOOTSTRAP],
+           external_stylesheets=[dbc.themes.BOOTSTRAP, dbc.icons.FONT_AWESOME],
            external_scripts=['/static/js/mol3d-responsive.js']
            )
 
@@ -140,14 +140,30 @@ app.layout = dbc.Container(
             dbc.Col(
                 dbc.Card(
                     [
-                        dbc.CardHeader("Variants"),
+                        dbc.CardHeader(
+                            dbc.Row(
+                                [
+                                    dbc.Col("Variants", width={"size": 11}),
+                                    dbc.Col(
+                                        dbc.Button(
+                                            html.I(className="fa fa-cog"), id="toggle-button", color="light", className="me-1", size="sm",
+                                        ),
+                                        className="ms-auto text-end"  # Pushes the Col to the far right
+                                    )
+                                ]
+                            )
+                        ),
                         dbc.CardBody(
                             [
-                                dcc.Dropdown(
-                                    id='column-dropdown',
-                                    options=column_options,
-                                    value=default_columns,  # Default columns to display
-                                    multi=True
+                                dbc.Collapse(
+                                    dcc.Dropdown(
+                                        id='column-dropdown',
+                                        options=column_options,
+                                        value=default_columns,
+                                        multi=True
+                                    ),
+                                    id='dropdown-collapse',
+                                    is_open=True  # Initially open
                                 ),
                                 dash_table.DataTable(
                                     id="zooming-specific-variants-table",
@@ -207,6 +223,7 @@ def residue(selected_row):
         ],
     ]
 
+
 @callback(
     Output('zooming-specific-variants-table', 'columns'),
     Input('column-dropdown', 'value'),
@@ -214,6 +231,15 @@ def residue(selected_row):
 )
 def update_columns(selected_columns):
     return [{'name': i, 'id': i} for i in selected_columns]
+
+
+@app.callback(
+    Output('dropdown-collapse', 'is_open'),
+    [Input('toggle-button', 'n_clicks')],
+    [State('dropdown-collapse', 'is_open')]
+)
+def toggle_dropdown(n, is_open):
+    return not is_open
 
 
 if __name__ == "__main__":
