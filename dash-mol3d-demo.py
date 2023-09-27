@@ -64,6 +64,10 @@ def read_alignment_data(fasta_path):
     # Truncate alignment for demo purposes
     human_sequences = human_sequences[:50]
     fasta = '>' + '>'.join(human_sequences)
+    # # Write the filtered alignment data to a file for download
+    new_fasta_path = fasta_path.replace('.fa', '_filtered.fa')
+    with open(new_fasta_path, 'w') as file:
+        file.write(fasta)  # TODO: Provide download link
     return fasta
 
 def load_all_data(pfam_id):
@@ -92,9 +96,6 @@ alignment_chart = dashbio.AlignmentChart(
     showgap=False,
 )
 
-# # Write the filtered alignment data to a file for download
-# with open('data/PF00104.29-swiss-human.fa', 'w') as file:
-#     file.write(fasta)
 
 # Enhanced layout with Bootstrap
 navbar = dbc.Navbar(
