@@ -42,7 +42,10 @@ variants.columns = ['_'.join(col).strip() for col in variants.columns.values]
 column_options = [{'label': col, 'value': col} for col in variants.columns]
 
 # Default columns to display
-default_columns = variants.columns[:10].tolist()
+try:
+    default_columns = ['Alignment_Column', 'VEP_SWISSPROT', 'VEP_HGVSp', 'VEP_Consequence', 'Allele_INFO_AC', 'Site_INFO_AN']
+except:
+    default_columns = variants.columns[:10].tolist()
 
 # Enhanced layout with Bootstrap
 navbar = dbc.Navbar(
