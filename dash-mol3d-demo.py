@@ -10,49 +10,66 @@ app = Dash(__name__,
            external_scripts=['/static/js/mol3d-responsive.js']
            )
 
-# Parse PDB from local file or URL
-parser = PdbParser('data/pdb3tx7.ent')
+def ready_mol3d_data(pdb_path):
+    # Parse PDB from local file or URL
+    parser = PdbParser(pdb_path)
 
-# Create styles for Molecule3dViewer
-data = parser.mol3d_data()
-styles = create_mol3d_style(
-    data['atoms'], visualization_type='cartoon', color_element='chain',
-    color_scheme={'A': '#facd60', 'P': '#fb7756'}
-)
+    # Create styles for Molecule3dViewer
+    data = parser.mol3d_data()
+    styles = create_mol3d_style(
+        data['atoms'], visualization_type='cartoon', color_element='chain',
+        color_scheme={'A': '#facd60', 'B': '#fb7756'}
+    )
+    return data, styles
 
-# Create a DataFrame with residue information
-df = pd.DataFrame(data["atoms"])
-df['positions'] = df['positions'].apply(lambda x: ', '.join(map(str, x)))
-df = df[df['name'] == 'CA']
-df = df[['chain', 'residue_name', 'residue_index', 'positions']]
+data, styles = ready_mol3d_data('data/pdb3tx7.ent')
 
-# Load variant table from HDF5 file
-variants = pd.read_hdf(
-    'data/PF00104.29-swiss-varalign-tables.h5', key='variants')
-variants_columns = variants.columns.tolist()
-# Drop problematic columns
-variants_columns.pop(97)  # ('Row', 'FILTER')
-variants_columns.pop(95)  # ('Row', 'ALT')
-variants = variants[variants_columns]
+def ready_residue_info(data):
+    # Create a DataFrame with residue information
+    df = pd.DataFrame(data["atoms"])
+    df['positions'] = df['positions'].apply(lambda x: ', '.join(map(str, x)))
+    df = df[df['name'] == 'CA']
+    df = df[['chain', 'residue_name', 'residue_index', 'positions']]
+    return df
 
-# Flatten multi-level columns
-variants.columns = ['_'.join(col).strip() for col in variants.columns.values]
+df = ready_residue_info(data)
 
-# The column options for the dropdown
-column_options = [{'label': col, 'value': col} for col in variants.columns]
+def ready_variant_table(varalign_h5_path):
+    # Load variant table from HDF5 file
+    variants = pd.read_hdf(varalign_h5_path, key='variants')
+    variants_columns = variants.columns.tolist()
+    # Drop problematic columns
+    variants_columns.pop(97)  # ('Row', 'FILTER')
+    variants_columns.pop(95)  # ('Row', 'ALT')
+    variants = variants[variants_columns]
 
-# Default columns to display
-try:
-    default_columns = ['Alignment_Column', 'VEP_SWISSPROT',
-                       'VEP_HGVSp', 'VEP_Consequence', 'Allele_INFO_AC', 'Site_INFO_AN']
-except:
-    default_columns = variants.columns[:10].tolist()
+    # Flatten multi-level columns
+    variants.columns = ['_'.join(col).strip() for col in variants.columns.values]
+
+    # The column options for the dropdown
+    column_options = [{'label': col, 'value': col} for col in variants.columns]
+
+    # Default columns to display
+    try:
+        default_columns = ['Alignment_Column', 'VEP_SWISSPROT',
+                           'VEP_HGVSp', 'VEP_Consequence', 'Allele_INFO_AC', 'Site_INFO_AN']
+    except:
+        default_columns = variants.columns[:10].tolist()
+
+    return variants, column_options, default_columns
+
+variants, column_options, default_columns = ready_variant_table('data/PF00104.29-swiss-varalign-tables.h5')
 
 
-# Load the alignment data
-fasta = open('data/PF00104.29_swissprot.fa').read()
-# Filter human sequences
-fasta = '>' + '>'.join([seq for seq in fasta.split('>') if 'HUMAN' in seq])
+def read_alignment_data(fasta_path):
+    # Load the alignment data
+    fasta = open(fasta_path).read()
+    # Filter human sequences
+    fasta = '>' + '>'.join([seq for seq in fasta.split('>') if 'HUMAN' in seq])
+    return fasta
+
+fasta = read_alignment_data('data/PF00104.29_swissprot.fa')
+
 alignment_chart = dashbio.AlignmentChart(
     id='alignment-viewer-eventDatum-usage',
     data=fasta,
@@ -61,6 +78,7 @@ alignment_chart = dashbio.AlignmentChart(
     showconservation=False,
     showgap=False,
 )
+
 # Write the filtered alignment data to a file for download
 with open('data/PF00104.29-swiss-human.fa', 'w') as file:
     file.write(fasta)
