@@ -48,6 +48,18 @@ try:
 except:
     default_columns = variants.columns[:10].tolist()
 
+
+# Load the alignment data
+fasta = open('data/PF00104.29_swissprot.fa').read()
+# Filter human sequences
+fasta = '>' + '>'.join([seq for seq in fasta.split('>') if 'HUMAN' in seq])
+alignment_chart = dashbio.AlignmentChart(
+    id='alignment-viewer-eventDatum-usage',
+    data=fasta,
+    height=1200,  # Large height to display all sequences
+    tilewidth=30,
+)
+
 # Enhanced layout with Bootstrap
 navbar = dbc.Navbar(
     dbc.Container(
@@ -77,6 +89,7 @@ navbar = dbc.Navbar(
 app.layout = dbc.Container(
     [
         dbc.Row(dbc.Col(navbar)),  # NavBar
+        # Mol3dViewer and residue table
         dbc.Row(
             [
                 dbc.Col(
@@ -137,6 +150,25 @@ app.layout = dbc.Container(
                 ),
             ]
         ),
+        
+        # Alignment chart
+        dbc.Row(
+            dbc.Col(
+                dbc.Card(
+                    [
+                        dbc.CardHeader("Alignment Chart"),
+                        dbc.CardBody(
+                            alignment_chart,
+                            className="alignment-chart-card-body"
+                        ),
+                    ],
+                    className="alignment-chart-card"
+                ),
+                width={"size": 12, "offset": 0}
+            )
+        ),
+        
+        # Variants table
         dbc.Row(
             dbc.Col(
                 dbc.Card(
@@ -182,7 +214,8 @@ app.layout = dbc.Container(
                                         'Alignment_Column': 'Position in Pfam alignment',
                                         'VEP_SWISSPROT': 'UniProtKB/Swiss-Prot accession of the protein',
                                         'VEP_HGVSp': 'Variant protein sequence annotation in the format p.(<pos><ref_aa><pos><alt_aa>)',
-                                        'VEP_Consequence': 'The VEP predicted consequence',  # http://www.ensembl.org/info/genome/variation/prediction/predicted_data.html
+                                        # http://www.ensembl.org/info/genome/variation/prediction/predicted_data.html
+                                        'VEP_Consequence': 'The VEP predicted consequence',
                                         'Allele_INFO_AC': 'Variant allele count',
                                         'Site_INFO_AN': 'Total number of alleles in called genotypes',
                                     },
