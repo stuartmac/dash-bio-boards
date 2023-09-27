@@ -86,6 +86,130 @@ navbar = dbc.Navbar(
     className="navbar-expand-lg",
 )
 
+residue_info_card = dbc.Card(
+    [
+        dbc.CardHeader("Residue Information"),
+        dbc.CardBody(
+            dash_table.DataTable(
+                id="zooming-specific-residue-table",
+                columns=[{"name": i, "id": i}
+                         for i in df.columns],
+                data=df.to_dict("records"),
+                row_selectable="single",
+                page_size=10,
+                style_table={
+                    'overflowX': 'scroll',
+                },
+                style_cell={
+                    'textAlign': 'left',
+                    'font_family': 'Arial',
+                    'font_size': '16px'
+                },
+            ),
+            className="data-table-card-body"
+        ),
+    ],
+    className="data-table-card"
+)
+
+mol3d_viewer_card = dbc.Card(
+    [
+        dbc.CardHeader("3D Protein Structure"),
+        dbc.CardBody(
+            # Add a box around Molecule3dViewer
+            dashbio.Molecule3dViewer(
+                id="zooming-specific-molecule3d-zoomto",
+                modelData=data,
+                styles=styles,
+                # Responsive
+                style={"width": "100%", "height": "100%"}
+            ),
+            style={
+                'padding': '10px',
+                'width': '100%',  # Responsive
+                'height': '600px',
+            },
+            className="mol3d-card-body"
+        ),
+    ],
+    className="mol3d-card"
+)
+
+alignment_chart_card = dbc.Card(
+    [
+        dbc.CardHeader("Alignment Chart"),
+        dbc.CardBody(
+            alignment_chart,
+            className="alignment-chart-card-body"
+        ),
+    ],
+    className="alignment-chart-card"
+)
+
+variant_table_card = dbc.Card(
+    [
+        dbc.CardHeader(
+            dbc.Row(
+                [
+                    dbc.Col("Variants", width={"size": 11}),
+                    dbc.Col(
+                        dbc.Button(
+                            html.I(className="fa fa-cog"), id="toggle-button", color="light", className="me-1", size="sm",
+                        ),
+                        className="ms-auto text-end"  # Pushes the Col to the far right
+                    )
+                ]
+            )
+        ),
+        dbc.CardBody(
+            [
+                dbc.Collapse(
+                    dcc.Dropdown(
+                        id='column-dropdown',
+                        options=column_options,
+                        value=default_columns,
+                        multi=True
+                    ),
+                    id='dropdown-collapse',
+                    is_open=True  # Initially open
+                ),
+                dash_table.DataTable(
+                    id="zooming-specific-variants-table",
+                    columns=[{'name': i, 'id': i}
+                             for i in default_columns],
+                    data=variants.to_dict("records"),
+                    page_size=10,
+                    style_table={'overflowX': 'scroll'},
+                    style_cell={
+                        'textAlign': 'left', 'font_family': 'Arial', 'font_size': '16px'},
+                    sort_action='native',
+                    filter_action='native',
+                    row_selectable='single',
+                    tooltip_header={
+                        'Alignment_Column': 'Position in Pfam alignment',
+                        'VEP_SWISSPROT': 'UniProtKB/Swiss-Prot accession of the protein',
+                        'VEP_HGVSp': 'Variant protein sequence annotation in the format p.(<pos><ref_aa><pos><alt_aa>)',
+                        # http://www.ensembl.org/info/genome/variation/prediction/predicted_data.html
+                        'VEP_Consequence': 'The VEP predicted consequence',
+                        'Allele_INFO_AC': 'Variant allele count',
+                        'Site_INFO_AN': 'Total number of alleles in called genotypes',
+                    },
+                    # Style headers with a dotted underline to indicate a tooltip
+                    style_header={
+                        'textDecoration': 'underline',
+                        'textDecorationStyle': 'dotted',
+                    },
+                    # TODO: Customise export UX
+                    export_format='csv',
+                    export_headers='names'
+                ),
+            ],
+            className="variants-table-card-body"
+        ),
+    ],
+    className="variants-table-card"
+)
+
 app.layout = dbc.Container(
     [
         dbc.Row(dbc.Col(navbar)),  # NavBar
@@ -93,56 +217,11 @@ app.layout = dbc.Container(
         dbc.Row(
             [
                 dbc.Col(
-                    dbc.Card(
-                        [
-                            dbc.CardHeader("Residue Information"),
-                            dbc.CardBody(
-                                dash_table.DataTable(
-                                    id="zooming-specific-residue-table",
-                                    columns=[{"name": i, "id": i}
-                                             for i in df.columns],
-                                    data=df.to_dict("records"),
-                                    row_selectable="single",
-                                    page_size=10,
-                                    style_table={
-                                        'overflowX': 'scroll',
-                                    },
-                                    style_cell={
-                                        'textAlign': 'left',
-                                        'font_family': 'Arial',
-                                        'font_size': '16px'
-                                    },
-                                ),
-                                className="data-table-card-body"
-                            ),
-                        ],
-                        className="data-table-card"
-                    ),
+                    residue_info_card,
                     width={"size": 6, "offset": 0}
                 ),
                 dbc.Col(
-                    dbc.Card(
-                        [
-                            dbc.CardHeader("3D Protein Structure"),
-                            dbc.CardBody(
-                                # Add a box around Molecule3dViewer
-                                dashbio.Molecule3dViewer(
-                                    id="zooming-specific-molecule3d-zoomto",
-                                    modelData=data,
-                                    styles=styles,
-                                    # Responsive
-                                    style={"width": "100%", "height": "100%"}
-                                ),
-                                style={
-                                    'padding': '10px',
-                                    'width': '100%',  # Responsive
-                                    'height': '600px',
-                                },
-                                className="mol3d-card-body"
-                            ),
-                        ],
-                        className="mol3d-card"
-                    ),
+                    mol3d_viewer_card,
                     # Bootstrap responsive setting
                     width={"size": 12, "offset": 0, "order": "last"},
                     # Bootstrap responsive setting for medium screens
@@ -150,91 +229,19 @@ app.layout = dbc.Container(
                 ),
             ]
         ),
-        
+
         # Alignment chart
         dbc.Row(
             dbc.Col(
-                dbc.Card(
-                    [
-                        dbc.CardHeader("Alignment Chart"),
-                        dbc.CardBody(
-                            alignment_chart,
-                            className="alignment-chart-card-body"
-                        ),
-                    ],
-                    className="alignment-chart-card"
-                ),
+                alignment_chart_card,
                 width={"size": 12, "offset": 0}
             )
         ),
-        
+
         # Variants table
         dbc.Row(
             dbc.Col(
-                dbc.Card(
-                    [
-                        dbc.CardHeader(
-                            dbc.Row(
-                                [
-                                    dbc.Col("Variants", width={"size": 11}),
-                                    dbc.Col(
-                                        dbc.Button(
-                                            html.I(className="fa fa-cog"), id="toggle-button", color="light", className="me-1", size="sm",
-                                        ),
-                                        className="ms-auto text-end"  # Pushes the Col to the far right
-                                    )
-                                ]
-                            )
-                        ),
-                        dbc.CardBody(
-                            [
-                                dbc.Collapse(
-                                    dcc.Dropdown(
-                                        id='column-dropdown',
-                                        options=column_options,
-                                        value=default_columns,
-                                        multi=True
-                                    ),
-                                    id='dropdown-collapse',
-                                    is_open=True  # Initially open
-                                ),
-                                dash_table.DataTable(
-                                    id="zooming-specific-variants-table",
-                                    columns=[{'name': i, 'id': i}
-                                             for i in default_columns],
-                                    data=variants.to_dict("records"),
-                                    page_size=10,
-                                    style_table={'overflowX': 'scroll'},
-                                    style_cell={
-                                        'textAlign': 'left', 'font_family': 'Arial', 'font_size': '16px'},
-                                    sort_action='native',
-                                    filter_action='native',
-                                    row_selectable='single',
-                                    tooltip_header={
-                                        'Alignment_Column': 'Position in Pfam alignment',
-                                        'VEP_SWISSPROT': 'UniProtKB/Swiss-Prot accession of the protein',
-                                        'VEP_HGVSp': 'Variant protein sequence annotation in the format p.(<pos><ref_aa><pos><alt_aa>)',
-                                        # http://www.ensembl.org/info/genome/variation/prediction/predicted_data.html
-                                        'VEP_Consequence': 'The VEP predicted consequence',
-                                        'Allele_INFO_AC': 'Variant allele count',
-                                        'Site_INFO_AN': 'Total number of alleles in called genotypes',
-                                    },
-                                    # Style headers with a dotted underline to indicate a tooltip
-                                    style_header={
-                                        'textDecoration': 'underline',
-                                        'textDecorationStyle': 'dotted',
-                                    },
-                                    # TODO: Customise export UX
-                                    export_format='csv',
-                                    export_headers='names'
-                                ),
-                            ],
-                            className="variants-table-card-body"
-
-                        ),
-                    ],
-                    className="variants-table-card"
-                ),
+                variant_table_card,
                 width={"size": 12, "offset": 0}
             )
         ),
