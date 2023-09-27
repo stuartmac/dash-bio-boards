@@ -43,7 +43,8 @@ column_options = [{'label': col, 'value': col} for col in variants.columns]
 
 # Default columns to display
 try:
-    default_columns = ['Alignment_Column', 'VEP_SWISSPROT', 'VEP_HGVSp', 'VEP_Consequence', 'Allele_INFO_AC', 'Site_INFO_AN']
+    default_columns = ['Alignment_Column', 'VEP_SWISSPROT',
+                       'VEP_HGVSp', 'VEP_Consequence', 'Allele_INFO_AC', 'Site_INFO_AN']
 except:
     default_columns = variants.columns[:10].tolist()
 
@@ -171,14 +172,28 @@ app.layout = dbc.Container(
                                              for i in default_columns],
                                     data=variants.to_dict("records"),
                                     page_size=10,
-                                    style_table={
-                                        'overflowX': 'scroll',
-                                    },
+                                    style_table={'overflowX': 'scroll'},
                                     style_cell={
-                                        'textAlign': 'left',
-                                        'font_family': 'Arial',
-                                        'font_size': '16px'
+                                        'textAlign': 'left', 'font_family': 'Arial', 'font_size': '16px'},
+                                    sort_action='native',
+                                    filter_action='native',
+                                    row_selectable='single',
+                                    tooltip_header={
+                                        'Alignment_Column': 'Position in Pfam alignment',
+                                        'VEP_SWISSPROT': 'UniProtKB/Swiss-Prot accession of the protein',
+                                        'VEP_HGVSp': 'Variant protein sequence annotation in the format p.(<pos><ref_aa><pos><alt_aa>)',
+                                        'VEP_Consequence': 'The VEP predicted consequence',  # http://www.ensembl.org/info/genome/variation/prediction/predicted_data.html
+                                        'Allele_INFO_AC': 'Variant allele count',
+                                        'Site_INFO_AN': 'Total number of alleles in called genotypes',
                                     },
+                                    # Style headers with a dotted underline to indicate a tooltip
+                                    style_header={
+                                        'textDecoration': 'underline',
+                                        'textDecorationStyle': 'dotted',
+                                    },
+                                    # TODO: Customise export UX
+                                    export_format='csv',
+                                    export_headers='names'
                                 ),
                             ],
                             className="variants-table-card-body"
