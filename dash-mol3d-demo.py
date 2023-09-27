@@ -69,7 +69,7 @@ with open('data/PF00104.29-swiss-human.fa', 'w') as file:
 navbar = dbc.Navbar(
     dbc.Container(
         [
-            dbc.NavbarBrand("Protein Structure Viewer", href="#"),
+            dbc.NavbarBrand("ProIntVar Web Prototype", href="#"),
             dbc.NavbarToggler(id="navbar-toggler"),
             dbc.Collapse(
                 dbc.Nav(
