@@ -58,6 +58,8 @@ alignment_chart = dashbio.AlignmentChart(
     data=fasta,
     height=1200,  # Large height to display all sequences
     tilewidth=30,
+    showconservation=False,
+    showgap=False,
 )
 
 # Enhanced layout with Bootstrap
